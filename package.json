@@ -46,7 +46,7 @@
   },
   "homepage": "https://github.com/PeculiarVentures/xadesjs#readme",
   "dependencies": {
-    "xmldsigjs": "^2.0.22"
+    "xmldsigjs": "git+ssh://git@github.com:debitoor/xmldsigjs.git#add-xmldsig-filter2"
   },
   "devDependencies": {
     "@types/dateformat": "^1.0.1",
