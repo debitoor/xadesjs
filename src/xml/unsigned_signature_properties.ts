@@ -81,7 +81,8 @@ export class UnsignedSignatureProperties extends XadesCollection<UnsignedSignatu
             if (node.nodeType !== XmlNodeType.Element) {
                 continue;
             }
-            let XmlClass: typeof UnsignedSignatureProperty | undefined;
+			let XmlClass: typeof UnsignedSignatureProperty | undefined;
+			// @ts-ignore
             switch (node.localName) {
                 case XmlXades.ElementNames.CounterSignature:
                     XmlClass = CounterSignature;
