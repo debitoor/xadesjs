@@ -93,7 +93,8 @@ export class SignedXml extends XmlDSigJs.SignedXml {
             if (item.Element) {
                 // Looking for <QualifyingProperties>
                 for (let i = 0; i < item.Element.childNodes.length; i++) {
-                    const node = item.Element.childNodes.item(i);
+					const node = item.Element.childNodes.item(i);
+					// @ts-ignore
                     if (node.nodeType === XmlCore.XmlNodeType.Element && node.localName === XAdES.XmlXades.ElementNames.QualifyingProperties) {
                         properties = XAdES.QualifyingProperties.LoadXml(node as Element);
                         return true;
