@@ -1,12 +1,12 @@
+import { Crypto } from "@peculiar/webcrypto";
 import * as assert from "assert";
-const WebCrypto = require("node-webcrypto-ossl");
 import { Application } from "xmldsigjs";
 import * as XAdES from "../../src";
 import { SignedXml, xml } from "../../src";
 const { QualifyingProperties, SignatureTimeStamp, CertificateValues, RevocationValues, ArchiveTimeStamp } = xml;
 const { CounterSignature } = xml;
 
-Application.setEngine("OpenSSL", new WebCrypto());
+Application.setEngine("NodeJS", new Crypto());
 
 const X_AT_SIT_1 = `<?xml version="1.0" encoding="UTF-8"?><ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#" Id="id-9763e891bef60a61e69e0ec1bd1ecd6d"><ds:SignedInfo><ds:CanonicalizationMethod Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/><ds:SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#ecdsa-sha256"/><ds:Reference Id="r-id-1" Type="http://www.w3.org/2000/09/xmldsig#Object" URI="#o-id-1"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#base64"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>RYPCI7Bgg4yXSOBNABfWOl7jpMkI/6lbd8kh7w9uqyY=</ds:DigestValue></ds:Reference><ds:Reference Type="http://uri.etsi.org/01903#SignedProperties" URI="#xades-id-9763e891bef60a61e69e0ec1bd1ecd6d"><ds:Transforms><ds:Transform Algorithm="http://www.w3.org/TR/2001/REC-xml-c14n-20010315"/></ds:Transforms><ds:DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256"/><ds:DigestValue>pIYqd/UZQQtVMhoQH+Zw2HFLHya+tP7wzEzwDArGTZk=</ds:DigestValue></ds:Reference></ds:SignedInfo><ds:SignatureValue Id="value-id-9763e891bef60a61e69e0ec1bd1ecd6d">xiXWFbPsEOUD69k51vrOKb84fCEq43SYD/pmQ2C8QmxkOTGlktFFYNhhXvxjyWPiytmBJmW2qHOGTcITvxJw1w==</ds:SignatureValue><ds:KeyInfo><ds:X509Data><ds:X509Certificate>MIIErjCCA5agAwIBAgIEeZaQJDANBgkqhkiG9w0BAQUFADCBlzELMAkGA1UEBhMCQVQxSDBGBgNVBAoMP0EtVHJ1c3QgR2VzLiBmLiBTaWNoZXJoZWl0c3N5c3RlbWUgaW0gZWxla3RyLiBEYXRlbnZlcmtlaHIgR21iSDEeMBwGA1UECwwVYS1zaWduLVByZW1pdW0tU2lnLTAyMR4wHAYDVQQDDBVhLXNpZ24tUHJlbWl1bS1TaWctMDIwHhcNMTYwMzI0MTYxOTIyWhcNMjEwMzI0MTUxOTIyWjB8MQswCQYDVQQGEwJBVDEbMBkGA1UEAwwSQWxleGFuZGVyIE1hcnNhbGVrMREwDwYDVQQEDAhNYXJzYWxlazESMBAGA1UEKgwJQWxleGFuZGVyMRUwEwYDVQQFEwwzNzg5MTkzMjE0NjMxEjAQBgNVBAwMCURpcGwuSW5nLjBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABN7mOMa18/wZyZkotFRZ0VsLN3aKhAbxduaGeB66+A6RdhQgQ6vmlno3PNTtKERAfxjtZI9tDGJcZ8mYG+17YLyjggHlMIIB4TB7BggrBgEFBQcBAQRvMG0wQgYIKwYBBQUHMAKGNmh0dHA6Ly93d3cuYS10cnVzdC5hdC9jZXJ0cy9hLXNpZ24tUHJlbWl1bS1TaWctMDJhLmNydDAnBggrBgEFBQcwAYYbaHR0cDovL29jc3AuYS10cnVzdC5hdC9vY3NwMA4GA1UdDwEB/wQEAwIGwDAnBggrBgEFBQcBAwEB/wQYMBYwCAYGBACORgEBMAoGCCsGAQUFBwsBMIGaBgNVHR8EgZIwgY8wgYyggYmggYaGgYNsZGFwOi8vbGRhcC5hLXRydXN0LmF0L291PWEtc2lnbi1QcmVtaXVtLVNpZy0wMixvPUEtVHJ1c3QsYz1BVD9jZXJ0aWZpY2F0ZXJldm9jYXRpb25saXN0P2Jhc2U/b2JqZWN0Y2xhc3M9ZWlkQ2VydGlmaWNhdGlvbkF1dGhvcml0eTAJBgNVHRMEAjAAMFkGA1UdIARSMFAwCAYGBACLMAEBMEQGBiooABEBCzA6MDgGCCsGAQUFBwIBFixodHRwOi8vd3d3LmEtdHJ1c3QuYXQvZG9jcy9jcC9hLXNpZ24tUHJlbWl1bTATBgNVHSMEDDAKgAhN3+H/S9nJ3zARBgNVHQ4ECgQITpG2911UJ8swDQYJKoZIhvcNAQEFBQADggEBANOLX0OEeEL+BNd+68LDQjgk1zJoSkqzj1DQs4l4j2ug2ERtDk9Yh8MdO6cbbbMriltJrq2a7dDeri7Y8ZY3YBmHlsNb5yDj3YruKXwUDs6nEBeASt5nWaRXgjeLnbWe2J/71L8Gurip2+l0aStOjyvpCF5wUGbeReXCKwL6GVPwKFZJIdSqpP+FzN60ZLWx8TXwIf6weVodNFiYlg3eU33o4yY2sFNSUMKKyEEvl88bAq8v/iP5mIBYSxpGRF75L6LulAeFTG5CO3q95eJS/37+oyRPqhuu0Aqvva2Li0vmt+neMmW8O+jjArZaiBNMz8+5i91TmMOcM/y+2vfrhLw=</ds:X509Certificate></ds:X509Data></ds:KeyInfo><ds:Object><xades:QualifyingProperties xmlns:xades="http://uri.etsi.org/01903/v1.3.2#" Target="#id-9763e891bef60a61e69e0ec1bd1ecd6d"><xades:SignedProperties Id="xades-id-9763e891bef60a61e69e0ec1bd1ecd6d"><xades:SignedSignatureProperties><xades:SigningTime>2016-04-28T14:54:07Z</xades:SigningTime><xades:SigningCertificate><xades:Cert><xades:CertDigest><ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/><ds:DigestValue>XpGNNQXJ+Vd02hJtq2Ob8VdTJdY=</ds:DigestValue></xades:CertDigest><xades:IssuerSerial><ds:X509IssuerName>CN=a-sign-Premium-Sig-02,OU=a-sign-Premium-Sig-02,O=A-Trust Ges. f. Sicherheitssysteme im elektr. Datenverkehr GmbH,C=AT</ds:X509IssuerName><ds:X509SerialNumber>2039910436</ds:X509SerialNumber></xades:IssuerSerial></xades:Cert></xades:SigningCertificate></xades:SignedSignatureProperties><xades:SignedDataObjectProperties><xades:DataObjectFormat ObjectReference="#r-id-1"><xades:MimeType>text/xml</xades:MimeType></xades:DataObjectFormat></xades:SignedDataObjectProperties></xades:SignedProperties></xades:QualifyingProperties></ds:Object><ds:Object Id="o-id-1">77u/PHJvb3Q+PC9yb290Pg==</ds:Object></ds:Signature>`;
 
@@ -22,52 +22,50 @@ const X_IT_ICB_6 = `<xades:QualifyingProperties Target="#signature-6758-0293-466
 
 context("Reading XAdES", () => {
 
-    it("X_AT_SIT_1", (done) => {
+    it("X_AT_SIT_1", async () => {
         const xades = new SignedXml(XAdES.Parse(X_AT_SIT_1));
         xades.LoadXml(X_AT_SIT_1);
 
         if (!xades.Properties) {
-            return assert("Properties is empty");
+            assert.fail("Properties is empty");
         }
 
         assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningTime.Value instanceof Date, true);
         assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningTime.Value.getFullYear(), 2016);
         assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Count, 1);
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0) !.IssuerSerial.X509IssuerName, "CN=a-sign-Premium-Sig-02,OU=a-sign-Premium-Sig-02,O=A-Trust Ges. f. Sicherheitssysteme im elektr. Datenverkehr GmbH,C=AT");
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0) !.IssuerSerial.X509SerialNumber, "2039910436");
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0)!.IssuerSerial.X509IssuerName, "CN=a-sign-Premium-Sig-02,OU=a-sign-Premium-Sig-02,O=A-Trust Ges. f. Sicherheitssysteme im elektr. Datenverkehr GmbH,C=AT");
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0)!.IssuerSerial.X509SerialNumber, "2039910436");
         assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Count, 1);
-        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0) !.ObjectReference, "#r-id-1");
-        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0) !.MimeType, "text/xml");
+        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0)!.ObjectReference, "#r-id-1");
+        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0)!.MimeType, "text/xml");
 
-        xades.Verify()
-            .then((res) => assert.equal(res, true))
-            .then(done, done);
+        const ok = await xades.Verify();
+        assert.equal(ok, true);
     });
 
-    it("X_BE_CONN_10", (done) => {
+    it("X_BE_CONN_10", async () => {
         const xades = new SignedXml(XAdES.Parse(X_BE_CONN_10));
         xades.LoadXml(X_BE_CONN_10);
 
         if (!xades.Properties) {
-            return assert("Properties is empty");
+            assert.fail("Properties is empty");
         }
 
         assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningTime.Value instanceof Date, true);
         assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningTime.Value.getFullYear(), 2016);
         assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Count, 2);
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0) !.IssuerSerial.X509IssuerName, "CN=GlobalSign PersonalSign 2 CA - SHA256 - G2,O=GlobalSign nv-sa,C=BE");
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0) !.IssuerSerial.X509SerialNumber, "288350169419475868349393263988944744462");
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0) !.CertDigest.DigestMethod.Algorithm, "http://www.w3.org/2000/09/xmldsig#sha1");
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0) !.CertDigest.DigestValue.byteLength, 20);
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(1) !.IssuerSerial.X509IssuerName, "CN=GlobalSign,O=GlobalSign,OU=GlobalSign Root CA - R3");
-        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(1) !.IssuerSerial.X509SerialNumber, "4835703278459828975317766");
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0)!.IssuerSerial.X509IssuerName, "CN=GlobalSign PersonalSign 2 CA - SHA256 - G2,O=GlobalSign nv-sa,C=BE");
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0)!.IssuerSerial.X509SerialNumber, "288350169419475868349393263988944744462");
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0)!.CertDigest.DigestMethod.Algorithm, "http://www.w3.org/2000/09/xmldsig#sha1");
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(0)!.CertDigest.DigestValue.byteLength, 20);
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(1)!.IssuerSerial.X509IssuerName, "CN=GlobalSign,O=GlobalSign,OU=GlobalSign Root CA - R3");
+        assert.equal(xades.Properties.SignedProperties.SignedSignatureProperties.SigningCertificate.Item(1)!.IssuerSerial.X509SerialNumber, "4835703278459828975317766");
         assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Count, 1);
-        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0) !.ObjectReference, "#r-id-1");
-        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0) !.MimeType, "application/octet-stream");
+        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0)!.ObjectReference, "#r-id-1");
+        assert.equal(xades.Properties.SignedProperties.SignedDataObjectProperties.DataObjectFormats.Item(0)!.MimeType, "application/octet-stream");
 
-        xades.Verify()
-            .then((res) => assert.equal(res, true))
-            .then(done, done);
+        const ok = await xades.Verify();
+        assert.equal(ok, true);
     });
 
     it("X_FR_CS_3", () => {
@@ -86,14 +84,14 @@ context("Reading XAdES", () => {
 
         const signerRole = xades.SignedProperties.SignedSignatureProperties.SignerRole;
         assert.equal(signerRole.ClaimedRoles.Count, 1);
-        assert.equal(signerRole.ClaimedRoles.Item(0) !.Value, "Marketing manager");
+        assert.equal(signerRole.ClaimedRoles.Item(0)!.Value, "Marketing manager");
 
         const signedDataObjectProperties = xades.SignedProperties.SignedDataObjectProperties;
         assert.equal(signedDataObjectProperties.DataObjectFormats.Count, 1);
-        assert.equal(signedDataObjectProperties.DataObjectFormats.Item(0) !.ObjectReference, "");
+        assert.equal(signedDataObjectProperties.DataObjectFormats.Item(0)!.ObjectReference, "");
         assert.equal(signedDataObjectProperties.CommitmentTypeIndications.Count, 1);
-        assert.equal(signedDataObjectProperties.CommitmentTypeIndications.Item(0) !.CommitmentTypeId.Identifier.Value, "1.2.840.113549.1.9.16.6.3");
-        assert.equal(signedDataObjectProperties.CommitmentTypeIndications.Item(0) !.AllSignedDataObjects, true);
+        assert.equal(signedDataObjectProperties.CommitmentTypeIndications.Item(0)!.CommitmentTypeId.Identifier.Value, "1.2.840.113549.1.9.16.6.3");
+        assert.equal(signedDataObjectProperties.CommitmentTypeIndications.Item(0)!.AllSignedDataObjects, true);
     });
 
     it("X_BG_BOR_1", () => {
@@ -104,7 +102,7 @@ context("Reading XAdES", () => {
 
         const signedSignatureProperties = xades.SignedProperties.SignedSignatureProperties;
         assert.equal(!!signedSignatureProperties, true);
-        const cert = signedSignatureProperties.SigningCertificate.Item(0) !;
+        const cert = signedSignatureProperties.SigningCertificate.Item(0)!;
         assert.equal(!!cert, true);
         assert.equal(cert.CertDigest.DigestMethod.Algorithm, "http://www.w3.org/2000/09/xmldsig#sha1");
         assert.equal(cert.CertDigest.DigestValue.byteLength, 20);
@@ -125,13 +123,13 @@ context("Reading XAdES", () => {
         const signerRole = signedSignatureProperties.SignerRole;
         assert.equal(!!signerRole, true);
         assert.equal(signerRole.ClaimedRoles.Count, 1);
-        assert.equal(signerRole.ClaimedRoles.Item(0) !.Value, "ПОДПИСАН ОТ");
+        assert.equal(signerRole.ClaimedRoles.Item(0)!.Value, "ПОДПИСАН ОТ");
 
         const signedDataObjectProperties = xades.SignedProperties.SignedDataObjectProperties;
         assert.equal(!!signedDataObjectProperties, true);
         assert.equal(signedDataObjectProperties.DataObjectFormats.Count, 1);
-        assert.equal(signedDataObjectProperties.DataObjectFormats.Item(0) !.ObjectReference, "#r-id-1");
-        assert.equal(signedDataObjectProperties.DataObjectFormats.Item(0) !.MimeType, "text/xml");
+        assert.equal(signedDataObjectProperties.DataObjectFormats.Item(0)!.ObjectReference, "#r-id-1");
+        assert.equal(signedDataObjectProperties.DataObjectFormats.Item(0)!.MimeType, "text/xml");
     });
 
     it("X_BE_CONN_26", () => {
@@ -147,8 +145,8 @@ context("Reading XAdES", () => {
                 assert.equal(item.Id, "TS-e964b0fc-172d-4631-bc0e-fa456c429a5e");
                 assert.equal(item.CanonicalizationMethod.Algorithm, "http://www.w3.org/2001/10/xml-exc-c14n#");
                 assert.equal(item.EncapsulatedTimeStamp.Count, 1);
-                assert.equal(item.EncapsulatedTimeStamp.Item(0) !.Id, "ETS-e964b0fc-172d-4631-bc0e-fa456c429a5e");
-                assert.equal(item.EncapsulatedTimeStamp.Item(0) !.Value.byteLength, 4758);
+                assert.equal(item.EncapsulatedTimeStamp.Item(0)!.Id, "ETS-e964b0fc-172d-4631-bc0e-fa456c429a5e");
+                assert.equal(item.EncapsulatedTimeStamp.Item(0)!.Value.byteLength, 4758);
                 return true;
             }
             return false;
@@ -157,7 +155,7 @@ context("Reading XAdES", () => {
         xades.UnsignedProperties.UnsignedSignatureProperties.Some((item) => {
             if (item instanceof CertificateValues) {
                 assert.equal(item.EncapsulatedX509Certificates.Count, 2);
-                assert.equal(item.EncapsulatedX509Certificates.Item(0) !.Value.byteLength, 914);
+                assert.equal(item.EncapsulatedX509Certificates.Item(0)!.Value.byteLength, 914);
                 return true;
             }
             return false;
@@ -166,7 +164,7 @@ context("Reading XAdES", () => {
         xades.UnsignedProperties.UnsignedSignatureProperties.Some((item) => {
             if (item instanceof RevocationValues) {
                 assert.equal(item.CRLValues.Count, 1);
-                assert.equal(item.CRLValues.Item(0) !.Value.byteLength, 830);
+                assert.equal(item.CRLValues.Item(0)!.Value.byteLength, 830);
                 return true;
             }
             return false;
@@ -177,8 +175,8 @@ context("Reading XAdES", () => {
                 assert.equal(item.Id, "TS-8081f955-d8c9-498f-8922-dea64a21128d");
                 assert.equal(item.CanonicalizationMethod.Algorithm, "http://www.w3.org/2001/10/xml-exc-c14n#");
                 assert.equal(item.EncapsulatedTimeStamp.Count, 1);
-                assert.equal(item.EncapsulatedTimeStamp.Item(0) !.Id, "ETS-8081f955-d8c9-498f-8922-dea64a21128d");
-                assert.equal(item.EncapsulatedTimeStamp.Item(0) !.Value.byteLength, 4758);
+                assert.equal(item.EncapsulatedTimeStamp.Item(0)!.Id, "ETS-8081f955-d8c9-498f-8922-dea64a21128d");
+                assert.equal(item.EncapsulatedTimeStamp.Item(0)!.Value.byteLength, 4758);
                 return true;
             }
             return false;

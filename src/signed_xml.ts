@@ -41,6 +41,17 @@ export interface OptionsPolicyId {
     qualifiers?: Array<OptionsPolicyUserNotice | string>;
 }
 
+export interface OptionsSigningTime {
+    /**
+     * Signing time value. Default value if now
+     */
+    value?: Date;
+    /**
+     * Format of the signing time. Default format is ISO
+     */
+    format?: string;
+}
+
 export interface OptionsXAdES extends XmlDSigJs.OptionsSign {
 
     /**
@@ -50,6 +61,11 @@ export interface OptionsXAdES extends XmlDSigJs.OptionsSign {
      * @memberOf OptionsXAdES
      */
     signingCertificate?: string;
+
+    /**
+     * Sets signing time options
+     */
+    signingTime?: OptionsSigningTime;
 
     policy?: OptionsPolicyId | boolean;
     productionPlace?: OptionsProductionPlace;
@@ -93,9 +109,8 @@ export class SignedXml extends XmlDSigJs.SignedXml {
             if (item.Element) {
                 // Looking for <QualifyingProperties>
                 for (let i = 0; i < item.Element.childNodes.length; i++) {
-					const node = item.Element.childNodes.item(i);
-					// @ts-ignore
-                    if (node.nodeType === XmlCore.XmlNodeType.Element && node.localName === XAdES.XmlXades.ElementNames.QualifyingProperties) {
+                    const node = item.Element.childNodes.item(i);
+                    if (node.nodeType === XmlCore.XmlNodeType.Element && (node as Element).localName === XAdES.XmlXades.ElementNames.QualifyingProperties) {
                         properties = XAdES.QualifyingProperties.LoadXml(node as Element);
                         return true;
                     }
@@ -107,8 +122,8 @@ export class SignedXml extends XmlDSigJs.SignedXml {
         this.properties = properties;
     }
 
-    public Sign(algorithm: Algorithm, key: CryptoKey, data: Document, options?: OptionsXAdES): PromiseLike<XmlDSigJs.Signature> {
-        return super.Sign.apply(this, arguments);
+    public async Sign(algorithm: Algorithm, key: CryptoKey, data: Document, options?: OptionsXAdES) {
+        return super.Sign.apply(this, arguments as any);
     }
 
     //#endregion
@@ -135,9 +150,19 @@ export class SignedXml extends XmlDSigJs.SignedXml {
     protected async ApplySignOptions(signature: XmlDSigJs.Signature, algorithm: Algorithm, key: CryptoKey, options: OptionsXAdES) {
         await super.ApplySignOptions(signature, algorithm, key, options);
         if (this.Properties) {
-            // Add SigningTime
             const sigProps = this.Properties.SignedProperties.SignedSignatureProperties;
+
+            //#region Add SigningTime
             sigProps.SigningTime.Value = new Date();
+            if (options.signingTime) {
+                if (options.signingTime.value) {
+                    sigProps.SigningTime.Value = options.signingTime.value;
+                }
+                if (options.signingTime.format) {
+                    sigProps.SigningTime.Format = options.signingTime.format;
+                }
+            }
+            //#endregion
 
             // Add reference for SignedProperties
             const signingAlg = XmlCore.assign({}, algorithm, key.algorithm);
@@ -256,7 +281,7 @@ export class SignedXml extends XmlDSigJs.SignedXml {
 
                 ssp.SignaturePolicyIdentifier.SignaturePolicyId = policyId;
                 ssp.SignaturePolicyIdentifier.SignaturePolicyImplied = false;
-            } else {
+            } else if (options) {
                 ssp.SignaturePolicyIdentifier.SignaturePolicyImplied = true;
             }
         }
